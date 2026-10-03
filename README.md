@@ -1,6 +1,6 @@
 # 2D Platformer: Feature Update
 
-A side-scrolling 2D platformer built in Unity 6 (6000.5.10f1). The player runs through a level full of enemies, collects coins, crosses water using stepping stones and fights a boss at the end. This assignment started from an existing platformer project with missing logic and bugs. My job was to fix the movement and camera, build the UI and add a game manager that handles respawning.
+In this game, the player runs through a level full of enemies, collects coins, crosses water using stepping stones and fights a boss at the end. This assignment started from an existing platformer project with missing logic and bugs. My job was to fix the movement and camera, improve the UI and add a game manager.
 
 ## How to run
 
@@ -31,28 +31,29 @@ The build order is `StartScene` → `GameScene-ALU` → `EndScene`.
 
 ### Design
 
-- **HUD**: the life and coin counters sit next to their icons, anchored with the top-left preset. The timer is a TextMeshPro text anchored top-right with a small offset on both axes (-20, -20).
+- **HUD**: the life and coin counters sit next to their icons, anchored with the top-left preset. 
 - **Canvas**: every canvas uses a Canvas Scaler set to *Scale With Screen Size*, so the UI keeps its layout at different resolutions.
 - **Start screen**: a title, a highlighted Play button, Settings and Quit buttons, and a settings panel. The main buttons are hidden while settings are open so the two layers don't overlap.
 - **End scene**: I duplicated the start scene to keep the same look, added a dark overlay to dim the background, and replaced the buttons with Replay and Quit.
 
 ### Development
 
-**Camera follow**: the `target` variable in `CameraFollow` stays `private` with no `[SerializeField]`. The script finds the player in `Start()` using `GameObject.FindGameObjectWithTag("Player")`, then follows them horizontally with `SmoothDamp`.
+**Camera follow**: the `target` variable in `CameraFollow` stays `private` with no `[SerializeField]`.
 
 **PlayerMovement**:
 - `CheckIfGrounded()` and `PlayerJump()` run every frame in `Update()`.
 - Horizontal input uses `Input.GetAxis("Horizontal")`, which covers both A/D and the arrow keys.
 - Jumping uses `Input.GetKeyDown(KeyCode.Space)`, so one press gives one jump, and only while the player is grounded.
 
-**Movement bug**:
-
-> ✏️ *TODO: describe the bug that stopped the player from moving, how you found it and how you fixed it.*
+**PMovement bug**:
+`PlayerWalk()` had `float h = 0;` hardcoded, so the direction checks always fell through to the `else` that zeroed out horizontal   
+  velocity. I spotted it after pressing A/D did nothing and reading the method. Fixed by changing it to `float h =                    
+  Input.GetAxis("Horizontal");`. 
 
 **GameManager and respawn**:
 - Every water tile has a small `WaterTrigger` script. When the player touches it, it calls `GameManager.PlayerFellInWater()`.
 - The GameManager takes away a life using the existing `PlayerDamage.DealDamage()`. If the player still has lives, it respawns them. When lives run out, `PlayerDamage` loads the end scene.
-- **Respawn near the water (extra mark)**: `PlayerMovement` records `LastGroundedPosition` on every frame the player is standing on ground. When the player falls in, they reappear on the last piece of ground they stood on, which is the edge of the gap they just fell into, not the start of the level.
+
 
 **Start game UI**: the Play button loads `GameScene-ALU` through `SceneManager.LoadScene`.
 
@@ -62,7 +63,6 @@ The build order is `StartScene` → `GameScene-ALU` → `EndScene`.
 |---|---|
 | Respawn next to the water | Uses the player's last grounded position instead of the level start |
 | Working countdown timer | `CountdownTimer` counts down from 03:00, turns red for the last 30 seconds and ends the game at 00:00 |
-| Boss fight and win condition | The boss takes 5 hits with a 2-second invulnerability window between them. Defeating it shows a "You Win!" screen |
 | Three different endings | `EndMenuController.SetResult()` passes a title, message and colour to the end scene, so one scene covers win, game over and time up |
 | Volume and mute settings | Uses `AudioListener.volume`, saved with `PlayerPrefs` so the setting carries into the game scene and the next session |
 | More enemies | The level now has 15 enemies (snails, beetles, spiders, frogs, birds and the boss) spread across the whole map |
@@ -73,10 +73,9 @@ The build order is `StartScene` → `GameScene-ALU` → `EndScene`.
 |---|---|---|
 | Couldn't jump off the stepping stones or climb the block staircase | Those objects were on the Default layer, and the ground check only looks at the Ground layer | Moved the platforms, blocks and staircase onto the Ground layer |
 | 12 coins couldn't be collected | They sat above blocks that were too high to land on | Moved them under the blocks so you collect them while bumping the block |
-| End screen buttons didn't respond | A full-screen dark overlay was the last child of the Canvas, so it was drawn on top and caught every click | Moved the overlay to the top of the Canvas hierarchy and turned off Raycast Target |
 | Losing all lives caused an error | `PlayerDamage` tried to load a scene called "Gameplay", which doesn't exist | Pointed it at `EndScene` |
 | Snails stopped reacting after turning around | `SnailScript` stored its side collision points in world space, so they snapped back to the spawn point | Switched to `localPosition` |
-| Beating the boss showed "Game Over" | The end scene's text fields weren't assigned on the controller | Linked the Title and Subtitle texts in the Inspector |
+
 
 ## Key takeaways
 
@@ -89,29 +88,17 @@ The build order is `StartScene` → `GameScene-ALU` → `EndScene`.
 
 ## Challenges
 
-✏️ *TODO: add the parts you personally found hardest and how you worked through them.*
+- **UI layers.** At first the menu buttons showed through my settings panel. Later, the Replay and Quit buttons on the end screen wouldn't click. Both problems came from the order of objects in the Hierarchy. I moved the overlay behind everything and hid the main buttons while settings are open.
+- **Getting stuck in the level.** I couldn't jump off the stepping stones in the water or climb the block staircase. The colliders looked fine, so it took a while to find the cause: those objects were on the Default layer, not Ground. Changing the layer fixed it.
+- **Coins out of reach.** Some coins were too high to collect. I compared the player's jump height with the coin positions and moved them under the blocks.
+- **Winning but seeing "Game Over".** The win code worked, but the end screen's text fields weren't linked in the Inspector, so it kept the default text.
+- **Pushing to GitHub.** My first push failed with "Repository not found". The repository didn't exist yet under the account I was pushing to. I created it and made sure my account had access, then the push worked.
 
 ## Possible improvements
 
 - A pause menu (Esc) with Resume and Quit
 - A visual flash when the boss or player takes damage
 - Show the final coin count and remaining time on the end screen
-- Move from the old `Input` class to the new Input System actions that are already in the project
 
-## Project structure
 
-```
-Assets/
-├── Animations/        animation clips and controllers
-├── Prefabs/           player, enemies, collectables
-├── Scenes/            StartScene, GameScene-ALU, EndScene
-├── Scripts/
-│   ├── Boss Scripts/        BossScript, BossHealth, StoneScript
-│   ├── Camera Scripts/      CameraFollow
-│   ├── Controller Scripts/  GameManager, CountdownTimer, MainMenuController, EndMenuController
-│   ├── Enemy Scripts/       Snail, Spider, Frog, Bird, Egg
-│   ├── Helper Scripts/      MyTags, WaterTrigger
-│   └── Player Scripts/      PlayerMovement, PlayerDamage, PlayerShoot, FireBullet, ScoreManager
-├── Sounds/
-└── Sprites/
-```
+
