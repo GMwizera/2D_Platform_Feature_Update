@@ -88,11 +88,11 @@ The build order is `StartScene` → `GameScene-ALU` → `EndScene`.
 
 ## Challenges
 
-- **UI layers.** At first the menu buttons showed through my settings panel. Later, the Replay and Quit buttons on the end screen wouldn't click. Both problems came from the order of objects in the Hierarchy. I moved the overlay behind everything and hid the main buttons while settings are open.
-- **Getting stuck in the level.** I couldn't jump off the stepping stones in the water or climb the block staircase. The colliders looked fine, so it took a while to find the cause: those objects were on the Default layer, not Ground. Changing the layer fixed it.
-- **Coins out of reach.** Some coins were too high to collect. I compared the player's jump height with the coin positions and moved them under the blocks.
-- **Winning but seeing "Game Over".** The win code worked, but the end screen's text fields weren't linked in the Inspector, so it kept the default text.
-- **Pushing to GitHub.** My first push failed with "Repository not found". The repository didn't exist yet under the account I was pushing to. I created it and made sure my account had access, then the push worked.
+- **UI layers:** a panel and an overlay sat on top of my buttons, so I couldn't click them. I fixed the Hierarchy order.
+- **Getting stuck:** the stepping stones and stairs were on the wrong layer, so I couldn't jump. I moved them to Ground.
+- **Coins out of reach:** some coins were too high. I moved them under the blocks.
+- **Win showed "Game Over":** the end screen text wasn't linked in the Inspector.
+- **GitHub:** my push failed because the repository didn't exist yet. I created it, then pushed.
 
 ## Possible improvements
 
